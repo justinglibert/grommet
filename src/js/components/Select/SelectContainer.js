@@ -24,10 +24,6 @@ const SelectContainerBox = styled(Box)`
 `;
 
 class SelectContainer extends Component {
-  state = {
-    activeIndex: -1, // for tracking keyboard interaction
-    search: '',
-  }
   static defaultProps = {
     value: '',
   }
@@ -35,6 +31,29 @@ class SelectContainer extends Component {
   optionsRef = {}
   searchRef = createRef()
   selectRef = createRef()
+
+  static getDerivedStateFromProps(nextProps, prevState) {
+    const { options, value } = nextProps;
+
+    if (prevState.activeIndex === -1 && options && value) {
+      const optionValue = Array.isArray(value) && value.length ? value[0] : value;
+      const activeIndex = options.indexOf(optionValue);
+      return {
+        activeIndex,
+      };
+    } else if (prevState.activeIndex === -1 && prevState.search !== '') {
+      return {
+        activeIndex: 0,
+      };
+    }
+
+    return null;
+  }
+
+  state = {
+    search: '',
+    activeIndex: -1,
+  }
 
   componentDidMount() {
     const { onSearch } = this.props;
@@ -54,7 +73,10 @@ class SelectContainer extends Component {
 
   onInput = (event) => {
     this.setState(
-      { search: event.target.value },
+      {
+        search: event.target.value,
+        activeIndex: -1,
+      },
       () => this.onSearch(this.state.search)
     );
   }
